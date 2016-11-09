@@ -20,7 +20,7 @@ public class AccelerometerListener implements SensorEventListener {
     public void onSensorChanged(SensorEvent event) {
         try {
             file.writeLong(System.currentTimeMillis());
-            file.writeLong(event.timestamp);
+            file.writeLong(0);
             for (int i = 0; i < event.values.length; i++) {
                 file.writeFloat(event.values[i]);
             }

@@ -19,12 +19,14 @@ public class LightListener implements SensorEventListener {
     }
 
     public void onSensorChanged(SensorEvent event) {
-        final long second = 1000000000;
-        long timeDiff = event.timestamp - lastTimeStamp;
+        final long currentTime = System.currentTimeMillis();
+        final long second = 1000;
+        long timeDiff = currentTime - lastTimeStamp;
         if(timeDiff > 10*second) {
             try {
+                lastTimeStamp = currentTime;
                 file.writeLong(System.currentTimeMillis());
-                file.writeLong(event.timestamp);
+                file.writeLong(0);
                 for (int i = 0; i < event.values.length; i++) {
                     file.writeFloat(event.values[i]);
                 }

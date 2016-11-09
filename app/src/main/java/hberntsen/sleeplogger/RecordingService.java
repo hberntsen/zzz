@@ -5,11 +5,13 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
 
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
@@ -17,7 +19,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 
 /**
@@ -40,12 +44,20 @@ public class RecordingService extends Service {
     private LightListener lightListener;
     private DataOutputStream lightFile;
 
+    private DisplayStateReceiver displayStateReceiver;
+    private DataOutputStream displayFile;
+
+    private Sensor getDefaultSensor(int type) {
+        // android-to do: need to be smarter, for now, just return the 1st sensor
+        List<Sensor> l = sensorManager.getSensorList(type);
+        return l.isEmpty() ? null : l.get(0);
+    }
 
     @Override
     public void onCreate() {
         sensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
-        accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER, false);
-        lightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT, false);
+        accelerometerSensor = getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        lightSensor = getDefaultSensor(Sensor.TYPE_LIGHT);
     }
 
     @Override
@@ -62,7 +74,7 @@ public class RecordingService extends Service {
                     notificationIntent,
                     PendingIntent.FLAG_UPDATE_CURRENT);
 
-            Notification notification = new Notification.Builder(getApplicationContext())
+            Notification notification = new NotificationCompat.Builder(getApplicationContext())
                     .setContentTitle("Sleeplogger is recording...")
                     .setSmallIcon(R.mipmap.ic_launcher)
                     .setContentIntent(contentIntent)
@@ -80,6 +92,11 @@ public class RecordingService extends Service {
             lightFile = openFile("light");
             lightListener = new LightListener(lightFile);
             sensorManager.registerListener(lightListener, lightSensor, SensorManager.SENSOR_DELAY_NORMAL);
+
+            displayFile = openFile("screen");
+            displayStateReceiver = new DisplayStateReceiver(displayFile);
+            registerReceiver(displayStateReceiver, new IntentFilter(Intent.ACTION_SCREEN_OFF));
+            registerReceiver(displayStateReceiver, new IntentFilter(Intent.ACTION_SCREEN_ON));
         }
 
         return START_STICKY;
@@ -94,8 +111,7 @@ public class RecordingService extends Service {
     }
 
     private DataOutputStream openFile(String tag) {
-        String date = new Date().toString();
-        //return new File(Environment.getExternalStorageDirectory(), ftag+ntag);
+        String date = new SimpleDateFormat("y-MM-dd_HH-mm-ss").format(new Date());
         try {
             return new DataOutputStream(new BufferedOutputStream(
                     new FileOutputStream(new File(getExternalFilesDir(null), "Log_" + date + "_" + tag))));
@@ -112,14 +128,15 @@ public class RecordingService extends Service {
         wakeLock.release();
         sensorManager.unregisterListener(accelerometerListener);
         sensorManager.unregisterListener(lightListener);
+        unregisterReceiver(displayStateReceiver);
 
         try {
             accelerometerFile.close();
             lightFile.close();
+            displayFile.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
         running = false;
-        return;
     }
 }

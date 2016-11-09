@@ -24,21 +24,24 @@ public class MainActivity extends AppCompatActivity {
         startButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 startService(intent);
-                updateButtons();
+                updateButtons(true);
             }
         });
         stopButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 stopService(intent);
-                updateButtons();
+                updateButtons(false);
             }
         });
         updateButtons();
 
     }
-
     private void updateButtons() {
-        if (RecordingService.running) {
+        updateButtons(RecordingService.running);
+    }
+
+    private void updateButtons(boolean running) {
+        if (running) {
             stopButton.setEnabled(true);
             startButton.setEnabled(false);
         } else {

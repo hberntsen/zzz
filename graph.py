@@ -6,71 +6,11 @@ import matplotlib.dates as md
 from datetime import datetime
 from datetime import timedelta
 import pytz
+import os
 
 tz = pytz.timezone('Europe/Amsterdam')
 
-def getbg(t, x, y, z, norms):
-    bg = []
-    lastmotion = None
-
-    std = np.std(norms)
-    mean = np.mean(norms)
-
-    for t, x, y ,z, norm in zip(t, x, y, z, norms):
-        if norm > mean + std or norm < mean - std:
-            if lastmotion and t - lastmotion > 5*60:
-                bg.append((lastmotion, False))
-            elif not bg:
-                bg.append((t, True))
-            elif not bg[-1][1]:
-                bg.append((t, True))
-
-            lastmotion = t
-        # elif not bg:
-            # pass
-        # elif bg[-1][1]:
-            # bg.append((unixtime, False))
-    return bg
-
-def getbg2(allT, allPitch, allRoll):
-    bg = []
-    lastmotion = None
-
-    pitchRoll = np.sum(np.stack((allPitch, allRoll), axis=-1), axis=1)
-
-    diffs = np.abs(np.diff(pitchRoll))
-    k = 1
-
-    diffSums = []
-    allT = np.array(allT)
-
-    startIndex = 0
-    #skip first because of diffs
-    for i, tEnd in enumerate(allT[1:]):
-        while allT[startIndex] < tEnd - 10:
-            startIndex+=1
-
-        localPitchRoll = pitchRoll[startIndex:i]
-        travel = np.sum(diffs[startIndex: i])
-        rise = i
-        diffSums.append(diff)
-
-        if diff > mean + std or diff < mean - std:
-            if lastmotion and t - lastmotion > 5*60:
-                bg.append((lastmotion, False))
-            elif not bg:
-                bg.append((t, True))
-            elif not bg[-1][1]:
-                bg.append((t, True))
-
-            lastmotion = t
-        # elif not bg:
-            # pass
-        # elif bg[-1][1]:
-            # bg.append((unixtime, False))
-    return [bg, diffSums]
-
-def getbg3(allT, allPitch, allRoll, threshold = 2, clusterPeriod = 5*60):
+def getbg(allT, allPitch, allRoll, threshold = 2, clusterPeriod = 5*60):
     bg = []
     distances = []
     lastmotion = None
@@ -109,55 +49,72 @@ def getbg3(allT, allPitch, allRoll, threshold = 2, clusterPeriod = 5*60):
     return [bg, distances]
 
 
+def readAccelerometer(logPath):
+    file = open(logPath, 'rb')
 
-logPath = sys.argv[1]
-file = open(logPath, 'rb')
+    recordsize = 2*8+3*4
 
-recordsize = 2*8+3*4
-
-read = file.read(recordsize)
-
-t = []
-x = []
-y = []
-z = []
-
-while len(read) > 0:
-    data = struct.unpack('>qqfff', read)
-    # print('data:', data )
-    #in utc time
-    unixtime = data[0]/1e3
-
-    t.append(unixtime)
-    x.append(data[2])
-    y.append(data[3])
-    z.append(data[4])
     read = file.read(recordsize)
 
+    t = []
+    x = []
+    y = []
+    z = []
+
+    while len(read) > 0:
+        data = struct.unpack('>qqfff', read)
+        # print('data:', data )
+        #in utc time
+        unixtime = data[0]/1e3
+
+        t.append(unixtime)
+        x.append(data[2])
+        y.append(data[3])
+        z.append(data[4])
+        read = file.read(recordsize)
 
 
-x = np.array(x)
-y = np.array(y)
-z = np.array(z)
-norms = np.sqrt(x*x+ y*y + z*z)
-pitch = 180 * np.arctan(x/np.sqrt(y*y + z*z)) / np.pi
-roll = 180* np.arctan(y/np.sqrt(x*x+z*z))/np.pi
+
+    x = np.array(x)
+    y = np.array(y)
+    z = np.array(z)
+    pitch = 180 * np.arctan(x/np.sqrt(y*y + z*z)) / np.pi
+    roll = 180* np.arctan(y/np.sqrt(x*x+z*z))/np.pi
+    return (t, pitch, roll)
+
+def readScreen(logPath):
+    file = open(logPath, 'rb')
+
+    recordsize = 8+1
+
+    read = file.read(recordsize)
+
+    t = []
+    displayStates = []
+
+    while len(read) > 0:
+        data = struct.unpack('>qb', read)
+        # print('data:', data )
+        #in utc time
+        unixtime = data[0]/1e3
+
+        t.append(unixtime)
+        displayStates.append(data[1])
+        read = file.read(recordsize)
+
+    return (t, displayStates)
 
 
-# bg, diffSums = getbg2(t, x, y, z, norms)
-bg, diffSums = getbg3(t, pitch, roll)
+logPath = sys.argv[1]
+t, pitch, roll = readAccelerometer(logPath)
+
+bg, diffSums = getbg(t, pitch, roll)
 
 t_matplotlib = list(map(md.epoch2num, t))
 
 plt.figure(figsize=(20,3))
-# plt.plot(t,x)
-# plt.plot(t,y)
-# plt.plot(t,z)
-# plt.plot(t_matplotlib, norms)
-# plt.plot(t_matplotlib, diffSums)
 plt.plot(t_matplotlib,pitch)
 plt.plot(t_matplotlib,roll)
-# plt.plot(list(map(md.epoch2num, restx)),resty)
 
 def getDateRange(times):
     minT = datetime.fromtimestamp(np.min(t))
@@ -191,10 +148,25 @@ plt.title(startDate.strftime('%a %Y-%m-%d') + ' – ' + endDate.strftime('%a %Y-
 
 prevTime = np.min(t)
 for b in bg:
-    color = 'lightgreen' if b[1] else 'red'
+    color = 'lightgreen' if b[1] else 'orange'
     plt.axvspan(md.epoch2num(prevTime),md.epoch2num(b[0]),facecolor=color,
             alpha=0.25, zorder=-100, edgecolor= 'black')
     prevTime = b[0]
+
+displayLogPath = logPath[:-len('accelerometer')] + 'screen'
+if os.path.exists(displayLogPath):
+    tScreen, displayStates = readScreen(displayLogPath)
+    prevTime = tScreen[0]
+    prevState = displayStates[0]
+    for tScreen, displayState in zip(tScreen[1:], displayStates[1:]):
+        if displayState != prevState:
+            STATE_OFF = 1
+            STATE_ON = 2
+            if displayState == STATE_OFF:
+                plt.axvspan(md.epoch2num(prevTime), md.epoch2num(tScreen),
+                        facecolor='red', alpha=0.9, zorder=-90, edgecolor= 'red')
+            prevTime = tScreen
+            prevState = displayState
 
 # plt.show()
 plt.savefig(logPath + '.pdf', bbox_inches='tight')

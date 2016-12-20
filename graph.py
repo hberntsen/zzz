@@ -52,7 +52,20 @@ def getbg(allT, allPitch, allRoll, threshold = 2, clusterPeriod = 5*60):
 def readAccelerometer(logPath):
     file = open(logPath, 'rb')
 
-    recordsize = 2*8+3*4
+    versionData = file.read(4)
+    version = struct.unpack('>i', versionData)[0]
+
+    if version == 2:
+        recordsize = 1*8+3*4
+        dataFormat = '>qfff'
+        xyzOffset = 0
+    else:
+        recordsize = 2*8+3*4
+        dataFormat = '>qqfff'
+        xyzOffset = 1
+        file.close()
+        file = open(logPath, 'rb')
+
 
     read = file.read(recordsize)
 
@@ -62,18 +75,16 @@ def readAccelerometer(logPath):
     z = []
 
     while len(read) > 0:
-        data = struct.unpack('>qqfff', read)
+        data = struct.unpack(dataFormat, read)
         # print('data:', data )
         #in utc time
         unixtime = data[0]/1e3
 
         t.append(unixtime)
-        x.append(data[2])
-        y.append(data[3])
-        z.append(data[4])
+        x.append(data[1+xyzOffset])
+        y.append(data[2+xyzOffset])
+        z.append(data[3+xyzOffset])
         read = file.read(recordsize)
-
-
 
     x = np.array(x)
     y = np.array(y)
@@ -84,6 +95,13 @@ def readAccelerometer(logPath):
 
 def readScreen(logPath):
     file = open(logPath, 'rb')
+
+    versionData = file.read(4)
+    version = struct.unpack('>i', versionData)[0]
+
+    if version != 2:
+        file.close()
+        file = open(logPath, 'rb')
 
     recordsize = 8+1
 

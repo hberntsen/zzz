@@ -159,7 +159,12 @@ ax.xaxis.set_major_formatter(xfmt)
 # print(len(t))
 plt.xlim((md.epoch2num(startDate.timestamp()), md.epoch2num(endDate.timestamp())))
 plt.ylim((-30, 30))
-plt.xticks(np.arange(md.epoch2num(startDate.timestamp()), md.epoch2num(endDate.timestamp()), 1/48))
+plt.xticks(np.append(np.arange(
+    md.epoch2num(startDate.timestamp()),
+    md.epoch2num(endDate.timestamp()),
+    1000001/96000000), md.epoch2num(endDate.timestamp())))
+for label in ax.xaxis.get_ticklabels()[1::2]:
+    label.set_visible(False)
 # plt.xticks(rotation=90)
 plt.title(startDate.strftime('%a %Y-%m-%d') + ' – ' + endDate.strftime('%a %Y-%m-%d'))
 

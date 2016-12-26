@@ -173,7 +173,7 @@ prevTime = np.min(t)
 for b in bg:
     color = 'lightgreen' if b[1] else 'orange'
     plt.axvspan(md.epoch2num(prevTime),md.epoch2num(b[0]),facecolor=color,
-            alpha=0.25, zorder=-100, edgecolor= 'black')
+            alpha=0.20, zorder=-100, edgecolor= 'black')
     prevTime = b[0]
 
 displayLogPath = logPath[:-len('accelerometer')] + 'screen'

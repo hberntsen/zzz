@@ -131,8 +131,8 @@ bg, diffSums = getbg(t, pitch, roll)
 t_matplotlib = list(map(md.epoch2num, t))
 
 plt.figure(figsize=(20,3))
-plt.plot(t_matplotlib,pitch)
-plt.plot(t_matplotlib,roll)
+plt.plot(t_matplotlib,pitch, linewidth=0.5)
+plt.plot(t_matplotlib,roll, linewidth=0.5)
 
 def getDateRange(times):
     minT = datetime.fromtimestamp(np.min(t))

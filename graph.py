@@ -191,5 +191,13 @@ if os.path.exists(displayLogPath):
             prevTime = tScreen
             prevState = displayState
 
+resetsLogPath = logPath[:-len('accelerometer')] + 'resets'
+if os.path.exists(resetsLogPath):
+    tScreen, displayStates = readScreen(resetsLogPath)
+    for tScreen, displayState in zip(tScreen[1:], displayStates[1:]):
+        STATE_ON = 2
+        if displayState == STATE_ON:
+            plt.axvspan(md.epoch2num(tScreen), md.epoch2num(tScreen+30),
+                    facecolor='purple', alpha=0.9, zorder=-91, edgecolor='purple')
 # plt.show()
 plt.savefig(logPath + '.pdf', bbox_inches='tight')

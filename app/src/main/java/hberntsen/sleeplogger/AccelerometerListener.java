@@ -14,13 +14,17 @@ public class AccelerometerListener implements SensorEventListener {
     DataOutputStream file;
 
     public AccelerometerListener(DataOutputStream file) {
+        try {
+            file.writeInt(2); //version
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         this.file = file;
     }
 
     public void onSensorChanged(SensorEvent event) {
         try {
             file.writeLong(System.currentTimeMillis());
-            file.writeLong(0);
             for (int i = 0; i < event.values.length; i++) {
                 file.writeFloat(event.values[i]);
             }

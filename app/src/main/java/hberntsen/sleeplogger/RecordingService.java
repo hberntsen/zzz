@@ -47,6 +47,8 @@ public class RecordingService extends Service {
     private DisplayStateReceiver displayStateReceiver;
     private DataOutputStream displayFile;
 
+    final static private boolean recordLight = false;
+
     private Sensor getDefaultSensor(int type) {
         // android-to do: need to be smarter, for now, just return the 1st sensor
         List<Sensor> l = sensorManager.getSensorList(type);
@@ -89,9 +91,11 @@ public class RecordingService extends Service {
             accelerometerListener = new AccelerometerListener(accelerometerFile);
             sensorManager.registerListener(accelerometerListener, accelerometerSensor, SensorManager.SENSOR_DELAY_NORMAL);
 
-            lightFile = openFile("light");
-            lightListener = new LightListener(lightFile);
-            sensorManager.registerListener(lightListener, lightSensor, SensorManager.SENSOR_DELAY_NORMAL);
+            if(recordLight) {
+                lightFile = openFile("light");
+                lightListener = new LightListener(lightFile);
+                sensorManager.registerListener(lightListener, lightSensor, SensorManager.SENSOR_DELAY_NORMAL);
+            }
 
             displayFile = openFile("screen");
             displayStateReceiver = new DisplayStateReceiver(displayFile);
@@ -127,12 +131,16 @@ public class RecordingService extends Service {
     public void onDestroy() {
         wakeLock.release();
         sensorManager.unregisterListener(accelerometerListener);
-        sensorManager.unregisterListener(lightListener);
+        if(recordLight) {
+            sensorManager.unregisterListener(lightListener);
+        }
         unregisterReceiver(displayStateReceiver);
 
         try {
             accelerometerFile.close();
-            lightFile.close();
+            if(recordLight) {
+                lightFile.close();
+            }
             displayFile.close();
         } catch (IOException e) {
             e.printStackTrace();

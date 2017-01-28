@@ -15,6 +15,11 @@ public class LightListener implements SensorEventListener {
     long lastTimeStamp = 0;
 
     public LightListener(DataOutputStream file) {
+        try {
+            file.writeInt(2); //version
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         this.file = file;
     }
 
@@ -26,7 +31,6 @@ public class LightListener implements SensorEventListener {
             try {
                 lastTimeStamp = currentTime;
                 file.writeLong(System.currentTimeMillis());
-                file.writeLong(0);
                 for (int i = 0; i < event.values.length; i++) {
                     file.writeFloat(event.values[i]);
                 }

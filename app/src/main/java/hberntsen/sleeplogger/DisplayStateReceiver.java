@@ -15,6 +15,11 @@ public class DisplayStateReceiver extends BroadcastReceiver {
     DataOutputStream file;
 
     public DisplayStateReceiver(DataOutputStream file) {
+        try {
+            file.writeInt(2); //version
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         this.file = file;
     }
 

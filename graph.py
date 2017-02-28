@@ -12,7 +12,6 @@ tz = pytz.timezone('Europe/Amsterdam')
 
 def getbg(allT, allPitch, allRoll, threshold = 2, clusterPeriod = 5*60):
     bg = []
-    distances = []
     lastmotion = None
 
     pitchRoll = np.stack((allPitch, allRoll), axis=-1)
@@ -26,7 +25,6 @@ def getbg(allT, allPitch, allRoll, threshold = 2, clusterPeriod = 5*60):
         p1 = pitchRoll[startIndex]
         p2 = pitchRoll[i]
         distance = np.linalg.norm(p1-p2)
-        distances.append(distance)
 
         if startIndex == i:
             continue
@@ -46,7 +44,7 @@ def getbg(allT, allPitch, allRoll, threshold = 2, clusterPeriod = 5*60):
     else:
         bg.append((tEnd, True))
 
-    return [bg, distances]
+    return bg
 
 
 def readAccelerometer(logPath):
@@ -126,7 +124,7 @@ def readScreen(logPath):
 logPath = sys.argv[1]
 t, pitch, roll = readAccelerometer(logPath)
 
-bg, diffSums = getbg(t, pitch, roll)
+bg = getbg(t, pitch, roll)
 
 t_matplotlib = list(map(md.epoch2num, t))
 

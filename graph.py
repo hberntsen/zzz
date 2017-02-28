@@ -157,7 +157,7 @@ xfmt = md.DateFormatter('%H:%M', tz=tz)
 ax.xaxis.set_major_formatter(xfmt)
 # print(len(t))
 plt.xlim((md.epoch2num(startDate.timestamp()), md.epoch2num(endDate.timestamp())))
-plt.ylim((-30, 30))
+plt.ylim((-20, 20))
 plt.xticks(np.append(np.arange(
     md.epoch2num(startDate.timestamp()),
     md.epoch2num(endDate.timestamp()),
@@ -172,7 +172,7 @@ prevTime = np.min(t)
 for b in bg:
     color = 'lightgreen' if b[1] else 'orange'
     plt.axvspan(md.epoch2num(prevTime),md.epoch2num(b[0]),facecolor=color,
-            alpha=0.20, zorder=-100, edgecolor= 'black')
+            alpha=0.20, zorder=-100, edgecolor='gray')
     prevTime = b[0]
 
 displayLogPath = logPath[:-len('accelerometer')] + 'screen'

@@ -19,6 +19,7 @@ def getbg(allT, allPitch, allRoll, threshold = 2, clusterPeriod = 5*60):
 
     startIndex = 0
     for i, tEnd in enumerate(allT):
+        # compare to 10 seconds ago
         while allT[startIndex] < tEnd - 10:
             startIndex+=1
 
@@ -32,9 +33,9 @@ def getbg(allT, allPitch, allRoll, threshold = 2, clusterPeriod = 5*60):
         if distance > threshold:
             if lastmotion and tEnd - lastmotion > clusterPeriod:
                 bg.append((lastmotion, False))
-            elif not bg:
+            if not bg:
                 bg.append((tEnd, True))
-            elif not bg[-1][1]:
+            elif not bg[-1][1]: #only append first time
                 bg.append((tEnd, True))
 
             lastmotion = tEnd

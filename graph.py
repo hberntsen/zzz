@@ -123,6 +123,7 @@ def readScreen(logPath):
 
 
 logPath = sys.argv[1]
+outFormat = sys.argv[2]
 t, pitch, roll = readAccelerometer(logPath)
 
 bg = getbg(t, pitch, roll)
@@ -197,4 +198,4 @@ if os.path.exists(resetsLogPath):
         plt.axvspan(md.epoch2num(tReset), md.epoch2num(tReset+30),
                 facecolor='purple', alpha=0.9, zorder=-91, edgecolor='purple')
 # plt.show()
-plt.savefig(logPath + '.pdf', bbox_inches='tight')
+plt.savefig(logPath + '.' + outFormat, bbox_inches='tight', dpi=175)

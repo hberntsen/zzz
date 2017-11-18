@@ -147,6 +147,10 @@ def getDateRange(times):
 
     endDate = datetime(maxT.year, maxT.month, maxT.day, 9,0)
 
+    if minT < startDate or maxT > endDate:
+        startDate = minT
+        endDate = maxT
+
     return (startDate, endDate)
 
 

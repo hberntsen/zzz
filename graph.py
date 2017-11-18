@@ -135,8 +135,8 @@ plt.plot(t_matplotlib,pitch, linewidth=0.5, color='blue')
 plt.plot(t_matplotlib,roll, linewidth=0.5, color='green')
 
 def getDateRange(times):
-    minT = datetime.fromtimestamp(np.min(t))
-    maxT = datetime.fromtimestamp(np.max(t))
+    minT = datetime.fromtimestamp(np.min(times))
+    maxT = datetime.fromtimestamp(np.max(times))
     if maxT.day == minT.day:
         oneDay = timedelta(days=1)
         startDate = minT - oneDay

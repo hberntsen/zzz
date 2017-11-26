@@ -7,6 +7,7 @@ from datetime import datetime
 from datetime import timedelta
 import pytz
 import os
+from math import ceil
 
 tz = pytz.timezone('Europe/Amsterdam')
 
@@ -148,8 +149,8 @@ def getDateRange(times):
     endDate = datetime(maxT.year, maxT.month, maxT.day, 9,0)
 
     if minT < startDate or maxT > endDate:
-        startDate = minT
-        endDate = maxT
+        startDate = datetime(minT.year, minT.month, minT.day, minT.hour, minT.minute // 15 * 15)
+        endDate = datetime(maxT.year, maxT.month, maxT.day, maxT.hour, ceil(maxT.minute / 15) * 15)
 
     return (startDate, endDate)
 

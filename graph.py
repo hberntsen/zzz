@@ -201,6 +201,6 @@ if os.path.exists(resetsLogPath):
     tsReset, _ = readScreen(resetsLogPath)
     for tReset in tsReset:
         plt.axvspan(md.epoch2num(tReset), md.epoch2num(tReset+30),
-                facecolor='purple', alpha=0.9, zorder=-91, edgecolor='purple')
+                facecolor='purple', alpha=0.9, zorder=10, edgecolor='purple')
 # plt.show()
 plt.savefig(logPath + '.' + outFormat, bbox_inches='tight', dpi=175)

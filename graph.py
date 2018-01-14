@@ -150,7 +150,7 @@ def getDateRange(times):
 
     if minT < startDate or maxT > endDate:
         startDate = datetime(minT.year, minT.month, minT.day, minT.hour, minT.minute // 15 * 15)
-        endDate = datetime(maxT.year, maxT.month, maxT.day, maxT.hour, ceil(maxT.minute / 15) * 15)
+        endDate = datetime(maxT.year, maxT.month, maxT.day, maxT.hour) + timedelta(minutes=ceil(maxT.minute / 15) * 15)
 
     return (startDate, endDate)
 
